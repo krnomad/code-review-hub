@@ -1,0 +1,9 @@
+/* Tailwind CSS의 기본 스타일 선언 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 선택 사항: 사용자 정의 스타일 */
+body {
+  @apply bg-gray-100 text-gray-800;
+}
