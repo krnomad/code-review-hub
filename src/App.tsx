@@ -1,10 +1,10 @@
 import React from 'react';
-import TokenManagement from './TokenManagement';
+import CodeReviewDashboard from './main';
 
 function App() {
   return (
     <div>
-      <TokenManagement />
+      <CodeReviewDashboard />
     </div>
   );
 }
