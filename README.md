@@ -1,46 +1,120 @@
-# Getting Started with Create React App
+# BitBucket 코드 리뷰 관리 시스템
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## 프로젝트 소개
+이 프로젝트는 BitBucket 저장소의 코드 리뷰를 효율적으로 관리하기 위한 웹 애플리케이션입니다. AI를 활용한 자동 코드 리뷰 기능과 함께 토큰 관리, 프로젝트 요청서 관리 등의 기능을 제공합니다.
 
-## Available Scripts
+### 주요 기능
+- 🔑 BitBucket API 토큰 관리
+- 📝 프로젝트 요청서 작성 및 관리
+- 🤖 AI 기반 코드 리뷰 테스트
+- 📊 사용 통계 확인
+- 👥 관리자/사용자 모드 지원
 
-In the project directory, you can run:
+## 시작하기
 
-### `npm start`
+### 필수 요구사항
+- Node.js 18.0.0 이상
+- npm 또는 yarn
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### 설치 방법
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+```bash
+# 저장소 클론
+git clone https://bitbucket.org/your-team/bitbucket-review-manager.git
 
-### `npm test`
+# 프로젝트 폴더로 이동
+cd bitbucket-review-manager
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# 의존성 설치
+npm install
+# 또는
+yarn install
 
-### `npm run build`
+# 개발 서버 실행
+npm run dev
+# 또는
+yarn dev
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 빌드 방법
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+# 프로덕션용 빌드
+npm run build
+# 또는
+yarn build
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+# 빌드된 결과물 실행
+npm run start
+# 또는
+yarn start
+```
 
-### `npm run eject`
+### 환경 변수 설정
+1. 프로젝트 루트에 `.env` 파일 생성
+2. 아래 환경 변수 설정
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```env
+VITE_APP_API_URL=your_api_url
+VITE_APP_ADMIN_PASSWORD=your_admin_password
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 테스트 실행
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+```bash
+# 단위 테스트 실행
+npm run test
+# 또는
+yarn test
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+# E2E 테스트 실행
+npm run test:e2e
+# 또는
+yarn test:e2e
+```
 
-## Learn More
+## 프로젝트 구조
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```
+src/
+├── components/          # 재사용 가능한 컴포넌트
+├── types/              # TypeScript 타입 정의
+├── utils/              # 유틸리티 함수
+├── reducers/           # 상태 관리 리듀서
+└── main.tsx            # 메인 애플리케이션
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 주요 기능 설명
+
+### 사용자 모드
+- **요청서 작성**: 새로운 프로젝트 등록 및 관리
+- **Prompt 테스트**: AI 코드 리뷰 기능 테스트
+- **내 프로젝트**: 등록된 프로젝트 조회 및 관리
+
+### 관리자 모드
+- **요청서 관리**: 사용자 요청 승인/거절
+- **프로젝트 관리**: 전체 프로젝트 관리
+- **토큰 관리**: BitBucket API 토큰 관리
+- **통계**: 시스템 사용 현황 확인
+
+## 기술 스택
+- React 18
+- TypeScript
+- Tailwind CSS
+- Lucide Icons
+- shadcn/ui
+
+## 문제 해결
+- 설치 중 오류 발생 시 `node_modules` 삭제 후 재설치
+- 포트 충돌 시 `.env` 파일에서 `PORT` 변경
+- 기타 문제는 이슈 트래커에 등록해주세요
+
+## 라이선스
+이 프로젝트는 MIT 라이선스를 따릅니다.
+
+## 기여하기
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
