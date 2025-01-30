@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, Copy, Book, AlertCircle, FileText, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Lock, Copy, Book, AlertCircle, FileText, CheckCircle, XCircle, Clock, Plus } from 'lucide-react';
 import { Alert, AlertDescription } from '../src/components/ui/alert';
 
 // 프로젝트 데이터 타입 정의
@@ -21,6 +21,18 @@ interface RequestForm {
   purpose: string;
   expectedDuration: string;
   teamSize: string;
+}
+
+// 프로젝트 데이터 타입 정의
+interface Token {
+  project_id: string;
+  token: string;
+  email: string;
+  created_at: string;
+  updated_at: string;
+  validation_status: 'valid' | 'invalid' | 'pending';
+  last_validation_date: string;
+  validation_fail_date?: string;
 }
 
 const CodeReviewDashboard: React.FC = () => {
@@ -70,9 +82,17 @@ const CodeReviewDashboard: React.FC = () => {
   ]);
 
   // 탭 관리
-  const adminTabs = ['BitBucket 토큰 관리', '요청서 관리', '프로젝트 관리'];
-  const userTabs = ['요청서 작성', 'Prompt 테스트', '내 프로젝트'];
+  const adminTabs = ['BitBucket 토큰 관리', '요청서 관리', '프로젝트 관리', '통계', '토큰 관리'];
+  const userTabs = ['요청서 작성', 'Prompt 테스트', '내 프로젝트', '사용 가이드'];
   const [selectedTab, setSelectedTab] = useState<string>(userTabs[0]);
+
+  const [editingToken, setEditingToken] = useState<Token | null>(null);
+  const [showSidePanel, setShowSidePanel] = useState(false);
+  const [form, setForm] = useState({
+    project_id: '',
+    token: '',
+    email: ''
+  });
 
   const handleRequestSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -406,6 +426,45 @@ const CodeReviewDashboard: React.FC = () => {
                 ))}
               </div>
             </div>
+          </div>
+        );
+
+      case '통계':
+        return (
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-6">시스템 사용 통계</h2>
+            {/* 통계 내용 추가 */}
+          </div>
+        );
+
+      case '사용 가이드':
+        return (
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-6">코드 리뷰 시스템 사용 가이드</h2>
+            {/* 가이드 내용 추가 */}
+          </div>
+        );
+
+      case '토큰 관리':
+        return (
+          <div className="max-w-6xl mx-auto p-6 relative">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">BitBucket 토큰 관리</h2>
+              <button
+                onClick={() => {
+                  setEditingToken(null);
+                  setForm({ project_id: '', token: '', email: '' });
+                  setShowSidePanel(true);
+                }}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center hover:bg-blue-600"
+              >
+                <Plus size={20} className="mr-2" />
+                새 토큰 추가
+              </button>
+            </div>
+            
+            {/* 검색 필터와 토큰 목록 등 기존 TokenManagement 컴포넌트의 내용 */}
+            {/* ... */}
           </div>
         );
 
