@@ -34,10 +34,16 @@ jobs:
           VITE_APP_API_URL: ${{ secrets.VITE_APP_API_URL }}
           VITE_APP_ADMIN_PASSWORD: ${{ secrets.VITE_APP_ADMIN_PASSWORD }}
 
-      # PR이 아닐 때만 배포 실행
-      - name: Deploy to GitHub Pages
+      # Configure Git
+      - name: Configure Git
         if: github.event_name != 'pull_request'
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist 
+        run: |
+          git config --global user.name github-actions
+          git config --global user.email github-actions@github.com
+
+      # Deploy using npm script
+      - name: Deploy
+        if: github.event_name != 'pull_request'
+        run: npm run deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
