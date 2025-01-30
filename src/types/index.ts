@@ -9,7 +9,7 @@ export interface Project {
   rejectReason?: string;
 }
 
-export interface RequestForm {
+export interface RequestFormType {
   projectName: string;
   repositoryUrl: string;
   description: string;
@@ -40,7 +40,7 @@ export interface State {
   reviewResult: string;
   error: string;
   showReference: boolean;
-  requestForm: RequestForm;
+  requestForm: RequestFormType;
   myProjects: Project[];
   selectedTab: string;
   editingToken: Token | null;
@@ -60,7 +60,7 @@ export type Action =
   | { type: 'SET_REVIEW_RESULT'; payload: string }
   | { type: 'SET_ERROR'; payload: string }
   | { type: 'TOGGLE_REFERENCE' }
-  | { type: 'UPDATE_REQUEST_FORM'; payload: Partial<RequestForm> }
+  | { type: 'UPDATE_REQUEST_FORM'; payload: Partial<RequestFormType> }
   | { type: 'SET_SELECTED_TAB'; payload: string }
   | { type: 'SET_EDITING_TOKEN'; payload: Token | null }
   | { type: 'TOGGLE_SIDE_PANEL' }
