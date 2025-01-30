@@ -1,5 +1,5 @@
 import React from 'react';
-import TokenManagement from './TokenManagement.tsx';
+import TokenManagement from './TokenManagement';
 
 function App() {
   return (
