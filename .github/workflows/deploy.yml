@@ -9,7 +9,8 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write  # 이 권한이 필요합니다
     steps:
       - uses: actions/checkout@v3
 
@@ -33,22 +34,12 @@ jobs:
         env:
           VITE_APP_API_URL: ${{ secrets.VITE_APP_API_URL }}
           VITE_APP_ADMIN_PASSWORD: ${{ secrets.VITE_APP_ADMIN_PASSWORD }}
-          CI: false  # Add this to prevent treating warnings as errors
+          CI: false
 
-      # Configure Git with token-based authentication
-      - name: Configure Git
-        if: github.event_name != 'pull_request'
-        run: |
-          git config --global user.name github-actions
-          git config --global user.email github-actions@github.com
-          git remote set-url origin https://${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Deploy using npm script
+      # Deploy to GitHub Pages
       - name: Deploy
         if: github.event_name != 'pull_request'
-        run: |
-          npm run deploy -- -u "github-actions-bot <support+actions@github.com>"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: build
+          branch: gh-pages 
