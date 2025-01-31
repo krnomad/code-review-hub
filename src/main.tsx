@@ -1,5 +1,7 @@
 import React, { useReducer } from 'react';
-import TokenManagement from './TokenManagement';
+import TokenManagement from './components/TokenManagement';
+import MyProjects from './components/MyProjects';
+import Guide from './components/Guide';
 import { reducer, initialState } from './reducers/dashboardReducer';
 import { AdminModal, RequestForm, PromptTest } from './components';
 
@@ -53,6 +55,12 @@ const CodeReviewDashboard: React.FC = () => {
         return <PromptTest state={state} dispatch={dispatch} />;
       case '토큰 관리':
         return <TokenManagement />;
+      case '내 프로젝트':
+        // log
+        console.log('내 프로젝트');
+        return <MyProjects />;
+      case '사용 가이드':
+        return <Guide />;
       default:
         return null;
     }

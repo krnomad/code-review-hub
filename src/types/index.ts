@@ -1,12 +1,18 @@
 // 모든 인터페이스와 타입 정의
+export type ProjectStatus = 'waiting' | 'accepted' | 'working' | 'enabled' | 'denied' | 'cancelled';
+
 export interface Project {
-  id: number;
-  name: string;
-  status: 'approved' | 'pending' | 'rejected';
-  requestDate: string;
-  expiryDate?: string;
-  reviewCount?: number;
-  rejectReason?: string;
+  id: string;
+  projectName: string;
+  repositoryUrl: string;
+  description: string;
+  purpose: string;
+  expectedDuration: string;
+  teamSize: string;
+  status: ProjectStatus;
+  lastUpdated: Date;
+  denyReason?: string;
+  createdAt: Date;
 }
 
 export interface RequestFormType {

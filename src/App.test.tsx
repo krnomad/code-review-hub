@@ -16,7 +16,7 @@ describe('App Component', () => {
 
   test('renders form title', () => {
     render(<App />);
-    const formTitle = screen.getByText('코드 리뷰 시스템 사용 요청서');
+    const formTitle = screen.getByText('코드 리뷰 시스템 사용 요청');
     expect(formTitle).toBeInTheDocument();
   });
 });
