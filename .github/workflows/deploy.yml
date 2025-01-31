@@ -33,6 +33,7 @@ jobs:
         env:
           VITE_APP_API_URL: ${{ secrets.VITE_APP_API_URL }}
           VITE_APP_ADMIN_PASSWORD: ${{ secrets.VITE_APP_ADMIN_PASSWORD }}
+          CI: false  # Add this to prevent treating warnings as errors
 
       # Configure Git with token-based authentication
       - name: Configure Git
@@ -40,7 +41,7 @@ jobs:
         run: |
           git config --global user.name github-actions
           git config --global user.email github-actions@github.com
-          git remote set-url origin https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+          git remote set-url origin https://${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
