@@ -1,4 +1,3 @@
-import React from 'react';
 import CodeReviewDashboard from './main';
 
 function App() {
