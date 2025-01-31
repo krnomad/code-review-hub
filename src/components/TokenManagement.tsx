@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, Edit, AlertCircle, CheckCircle, Search, Plus, X } from 'lucide-react';
+import { Trash2, Edit, AlertCircle, CheckCircle, Search, Plus, X, Key } from 'lucide-react';
+import { PageLayout } from './ui/PageLayout';
+import { styles } from '../styles/commonStyles';
 
 interface Token {
   project_id: string;
@@ -132,55 +134,44 @@ export default function TokenManagement() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 relative">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">BitBucket 토큰 관리</h2>
-        <button
-          onClick={() => {
-            setEditingToken(null);
-            setForm({ project_id: '', token: '', email: '' });
-            setShowSidePanel(true);
-          }}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center hover:bg-blue-600"
-        >
-          <Plus size={20} className="mr-2" />
-          새 토큰 추가
-        </button>
-      </div>
-      
+    <PageLayout
+      icon={Key}
+      title="토큰 관리"
+      description="BitBucket API 토큰을 관리합니다. 프로젝트별 토큰을 등록하고 관리할 수 있습니다."
+    >
       {/* 검색 필터 */}
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-        <h3 className="text-lg font-semibold mb-4 flex items-center">
-          <Search size={20} className="mr-2" />
+      <div className={`${styles.card} mb-6`}>
+        <h3 className="text-lg font-semibold mb-4 flex items-center text-gray-900 dark:text-gray-100">
+          <Search className="w-5 h-5 mr-2 text-gray-500 dark:text-gray-400" />
           검색 필터
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">프로젝트 ID</label>
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">프로젝트 ID</label>
             <input
               type="text"
               value={filters.project_id}
               onChange={e => setFilters({ ...filters, project_id: e.target.value })}
-              className="w-full px-3 py-2 border rounded"
+              className={styles.input}
               placeholder="프로젝트 ID 검색"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">이메일</label>
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">이메일</label>
             <input
               type="text"
               value={filters.email}
               onChange={e => setFilters({ ...filters, email: e.target.value })}
-              className="w-full px-3 py-2 border rounded"
+              className={styles.input}
               placeholder="이메일 검색"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">유효성 상태</label>
+            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">유효성 상태</label>
             <select
               value={filters.validation_status}
               onChange={e => setFilters({ ...filters, validation_status: e.target.value as Token['validation_status'] | '' })}
-              className="w-full px-3 py-2 border rounded"
+              className={styles.select}
             >
               <option value="">전체</option>
               <option value="valid">유효함</option>
@@ -192,43 +183,58 @@ export default function TokenManagement() {
       </div>
 
       {/* 토큰 목록 */}
-      <div className="mb-8">
-        <h3 className="text-xl font-semibold mb-4">저장된 토큰</h3>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">저장된 토큰</h3>
+          <button
+            onClick={() => {
+              setEditingToken(null);
+              setForm({ project_id: '', token: '', email: '' });
+              setShowSidePanel(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 
+                       rounded-lg ring-1 ring-blue-100 dark:ring-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900 
+                       transition-colors duration-200"
+          >
+            <Plus className="w-4 h-4" />
+            새 토큰 추가
+          </button>
+        </div>
+
         {currentTokens.length === 0 ? (
-          <div className="text-gray-500">표시할 토큰이 없습니다.</div>
+          <div className={styles.card}>
+            <p className="text-gray-500 dark:text-gray-400 text-center">표시할 토큰이 없습니다.</p>
+          </div>
         ) : (
           <div className="space-y-4">
             {currentTokens.map(token => (
-              <div key={token.project_id} className="border p-4 rounded-lg bg-white shadow">
+              <div key={token.project_id} className={styles.card}>
                 <div className="flex justify-between items-start">
-                  <div>
-                    <div className="font-medium">프로젝트 ID: {token.project_id}</div>
-                    <div className="text-sm text-gray-500 mt-1">이메일: {token.email}</div>
-                    <div className="text-sm text-gray-500">마지막 수정: {new Date(token.updated_at).toLocaleString()}</div>
-                    <div className="mt-2 flex items-center space-x-4">
+                  <div className="space-y-2">
+                    <div className="font-medium text-gray-900 dark:text-gray-100">프로젝트 ID: {token.project_id}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">이메일: {token.email}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      마지막 수정: {new Date(token.updated_at).toLocaleString()}
+                    </div>
+                    <div className="flex items-center space-x-4">
                       {getValidationStatusBadge(token.validation_status)}
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
                         마지막 검증: {new Date(token.last_validation_date).toLocaleString()}
                       </span>
                     </div>
-                    {token.validation_fail_date && (
-                      <div className="text-sm text-red-600 mt-1">
-                        유효성 검사 실패일: {new Date(token.validation_fail_date).toLocaleString()}
-                      </div>
-                    )}
                   </div>
-                  <div className="space-x-2">
+                  <div className="flex gap-2">
                     <button
                       onClick={() => editToken(token)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                      className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/50 rounded-lg"
                     >
-                      <Edit size={18} />
+                      <Edit className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => deleteToken(token.project_id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded"
+                      className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/50 rounded-lg"
                     >
-                      <Trash2 size={18} />
+                      <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
@@ -236,14 +242,15 @@ export default function TokenManagement() {
             ))}
           </div>
         )}
-        
-        {/* 페이지네이션 */}
+
+        {/* Pagination remains the same but with updated styles */}
         {totalPages > 1 && (
           <div className="flex justify-center mt-6 space-x-2">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-3 py-1 border rounded disabled:opacity-50"
+              className="px-3 py-1 border dark:border-gray-700 rounded-lg disabled:opacity-50
+                       text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               이전
             </button>
@@ -251,11 +258,11 @@ export default function TokenManagement() {
               <button
                 key={page}
                 onClick={() => handlePageChange(page)}
-                className={`px-3 py-1 border rounded ${
-                  currentPage === page
-                    ? 'bg-blue-500 text-white'
-                    : 'hover:bg-gray-100'
-                }`}
+                className={`px-3 py-1 border dark:border-gray-700 rounded-lg transition-colors
+                  ${currentPage === page
+                    ? 'bg-blue-500 dark:bg-blue-600 text-white border-blue-500 dark:border-blue-600'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                  }`}
               >
                 {page}
               </button>
@@ -263,7 +270,8 @@ export default function TokenManagement() {
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="px-3 py-1 border rounded disabled:opacity-50"
+              className="px-3 py-1 border dark:border-gray-700 rounded-lg disabled:opacity-50
+                       text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               다음
             </button>
@@ -271,65 +279,69 @@ export default function TokenManagement() {
         )}
       </div>
 
-      {/* 오버레이 */}
+      {/* Side panel and overlay remain functionally the same but with updated styles */}
       {showSidePanel && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+          className="fixed inset-0 bg-black/50 dark:bg-black/70 transition-opacity z-40"
           onClick={resetForm}
         />
       )}
 
-      {/* 사이드 패널 */}
       <div
-        className={`fixed right-0 top-0 h-full w-96 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
-          showSidePanel ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        className={`fixed right-0 top-0 h-full w-96 bg-white dark:bg-gray-800 shadow-lg transform 
+                     transition-transform duration-300 ease-in-out z-50 
+                     ${showSidePanel ? 'translate-x-0' : 'translate-x-full'}`}
       >
+        {/* Side panel content with updated styles */}
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               {editingToken ? '토큰 수정' : '새 토큰 추가'}
             </h3>
             <button
               onClick={resetForm}
-              className="p-2 hover:bg-gray-100 rounded-full"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full
+                       text-gray-500 dark:text-gray-400"
             >
-              <X size={20} />
+              <X className="w-5 h-5" />
             </button>
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Form fields with updated styles */}
             <div>
-              <label className="block text-sm font-medium mb-1">프로젝트 ID</label>
+              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                프로젝트 ID
+              </label>
               <input
                 value={form.project_id}
                 onChange={e => setForm({ ...form, project_id: e.target.value })}
                 type="text"
                 required
                 disabled={!!editingToken}
-                className="w-full px-3 py-2 border rounded"
+                className={styles.input}
                 placeholder="프로젝트 ID를 입력하세요"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">API 토큰</label>
+              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">API 토큰</label>
               <input
                 value={form.token}
                 onChange={e => setForm({ ...form, token: e.target.value })}
                 type="password"
                 required
-                className="w-full px-3 py-2 border rounded"
+                className={styles.input}
                 placeholder="BitBucket API 토큰을 입력하세요"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">알림 이메일</label>
+              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">알림 이메일</label>
               <input
                 value={form.email}
                 onChange={e => setForm({ ...form, email: e.target.value })}
                 type="email"
                 required
-                className="w-full px-3 py-2 border rounded"
+                className={styles.input}
                 placeholder="알림을 받을 이메일 주소를 입력하세요"
               />
             </div>
@@ -344,6 +356,6 @@ export default function TokenManagement() {
           </form>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }
