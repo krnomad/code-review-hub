@@ -1,18 +1,17 @@
-name: Auto Merge PR
+name: CI/CD and Auto Merge
 
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
   pull_request_review:
     types: [submitted]
-  check_suite:
-    types: [completed]
-  status: {}
+  push:
+    branches: [main]
 
 jobs:
-  auto-merge:
+  build-test-merge:
     runs-on: ubuntu-latest
-    if: github.actor != 'dependabot[bot]' # Dependabot PR 제외
+    if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -32,6 +31,9 @@ jobs:
       - name: Run lint
         run: npm run lint
 
+      - name: Build
+        run: npm run build
+
       - name: Auto-merge if checks pass
         uses: pascalgn/automerge-action@v0.15.6
         env:
@@ -45,4 +47,30 @@ jobs:
           MERGE_RETRIES: "6"
           MERGE_RETRY_SLEEP: "10000"
           UPDATE_LABELS: ""
-          UPDATE_METHOD: "rebase" 
+          UPDATE_METHOD: "rebase"
+
+  deploy:
+    needs: build-test-merge
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build 

@@ -25,7 +25,9 @@
     "test": "jest",
     "eject": "react-scripts eject",
     "typecheck": "tsc --noEmit",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "lint": "eslint src/**/*.{ts,tsx}",
+    "lint:fix": "eslint src/**/*.{ts,tsx} --fix"
   },
   "eslintConfig": {
     "extends": [

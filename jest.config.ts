@@ -1,4 +1,4 @@
-export default {
+const config = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
   moduleNameMapper: {
@@ -21,4 +21,6 @@ export default {
     '**/__tests__/**/*.+(ts|tsx|js)',
     '**/?(*.)+(spec|test).+(ts|tsx|js)'
   ],
-}; 
+};
+
+export default config; 

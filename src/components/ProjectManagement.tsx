@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FolderGit2, Search, Settings, BarChart2, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { FolderGit2, Search, Settings, BarChart2, AlertCircle, CheckCircle } from 'lucide-react';
 import { PageLayout } from './ui/PageLayout';
 import { styles } from '../styles/commonStyles';
 

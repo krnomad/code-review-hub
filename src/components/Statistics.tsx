@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ChartPie, Calendar, Users, GitBranch, Search, Clock, MessageSquare, CheckCircle2, GitPullRequest } from 'lucide-react';
+// import React, { useState } from 'react';
+import { ChartPie, Calendar, Users, GitBranch, Clock, MessageSquare, CheckCircle2, GitPullRequest } from 'lucide-react';
 import { PageLayout } from './ui/PageLayout';
 import { styles } from '../styles/commonStyles';
 import {
@@ -94,7 +94,7 @@ const reviewSizeDistribution = [
 ];
 
 export default function Statistics() {
-  const [dateRange, setDateRange] = useState('week'); // week, month, year
+  // const [dateRange, setDateRange] = useState('week'); // week, month, year
 
   const totalReviews = dailyUsage.reduce((sum, day) => sum + day.reviews, 0);
   const totalProjects = projectStats.reduce((sum, status) => sum + status.value, 0);
