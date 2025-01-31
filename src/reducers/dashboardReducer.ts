@@ -64,19 +64,3 @@ export const reducer = (state: State, action: Action): State => {
       return state;
   }
 };
-
-const handleAdminAuth = (state: State, password: string): State => {
-  if (password === 'demodemo') {
-    return {
-      ...state,
-      isAdmin: true,
-      showAdminModal: false,
-      adminPassword: '',
-      selectedTab: '요청서 관리'
-    };
-  }
-  return {
-    ...state,
-    adminError: '잘못된 비밀번호입니다.'
-  };
-}; 
