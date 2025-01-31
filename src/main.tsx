@@ -4,6 +4,9 @@ import MyProjects from './components/MyProjects';
 import Guide from './components/Guide';
 import { reducer, initialState } from './reducers/dashboardReducer';
 import { AdminModal, RequestForm, PromptTest } from './components';
+import RequestManagement from './components/RequestManagement';
+import ProjectManagement from './components/ProjectManagement';
+import Statistics from './components/Statistics';
 
 const CodeReviewDashboard: React.FC = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -55,12 +58,18 @@ const CodeReviewDashboard: React.FC = () => {
         return <PromptTest state={state} dispatch={dispatch} />;
       case '토큰 관리':
         return <TokenManagement />;
+      case '요청서 관리':
+        return <RequestManagement />;
+      case '프로젝트 관리':
+        return <ProjectManagement />;
       case '내 프로젝트':
         // log
         console.log('내 프로젝트');
         return <MyProjects />;
       case '사용 가이드':
         return <Guide />;
+      case '통계':
+        return <Statistics />;
       default:
         return null;
     }
