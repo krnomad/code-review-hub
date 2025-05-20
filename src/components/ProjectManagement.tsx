@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FolderGit2, Search, Settings, BarChart2, AlertCircle, CheckCircle } from 'lucide-react';
+import { FolderGit2, Search, Settings, BarChart2, AlertCircle, CheckCircle, RotateCcw } from 'lucide-react';
 import { PageLayout } from './ui/PageLayout';
 import { styles } from '../styles/commonStyles';
 
@@ -33,19 +33,42 @@ const mockProjects: Project[] = Array.from({ length: 20 }, (_, i) => ({
 export default function ProjectManagement() {
   const [projects, setProjects] = useState<Project[]>(mockProjects);
   const [currentPage, setCurrentPage] = useState(1);
-  const [filters, setFilters] = useState({
+  const initialFilters = {
     name: '',
-    status: '' as '' | Project['status']
-  });
+    status: '' as '' | Project['status'],
+    teamMembersRange: '',
+  };
+  const [filters, setFilters] = useState(initialFilters);
 
   const itemsPerPage = 5;
 
   // 필터링된 프로젝트 목록
   const filteredProjects = projects.filter(project => {
-    return (
-      project.name.toLowerCase().includes(filters.name.toLowerCase()) &&
-      (filters.status === '' || project.status === filters.status)
-    );
+    const nameMatch = project.name.toLowerCase().includes(filters.name.toLowerCase());
+    const statusMatch = filters.status === '' || project.status === filters.status;
+    
+    let teamMembersMatch = true;
+    if (filters.teamMembersRange) {
+      const { teamMembers } = project;
+      switch (filters.teamMembersRange) {
+        case '1-5':
+          teamMembersMatch = teamMembers >= 1 && teamMembers <= 5;
+          break;
+        case '6-10':
+          teamMembersMatch = teamMembers >= 6 && teamMembers <= 10;
+          break;
+        case '11-20':
+          teamMembersMatch = teamMembers >= 11 && teamMembers <= 20;
+          break;
+        case '21+':
+          teamMembersMatch = teamMembers >= 21;
+          break;
+        default:
+          teamMembersMatch = true;
+      }
+    }
+
+    return nameMatch && statusMatch && teamMembersMatch;
   });
 
   // 현재 페이지의 프로젝트들
@@ -86,12 +109,13 @@ export default function ProjectManagement() {
           <Search className="w-5 h-5 mr-2 text-gray-500 dark:text-gray-400" />
           검색 필터
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
           <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+            <label htmlFor="projectNameFilter" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
               프로젝트명
             </label>
             <input
+              id="projectNameFilter"
               type="text"
               value={filters.name}
               onChange={e => setFilters({ ...filters, name: e.target.value })}
@@ -100,19 +124,46 @@ export default function ProjectManagement() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+            <label htmlFor="statusFilter" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
               상태
             </label>
             <select
+              id="statusFilter"
               value={filters.status}
               onChange={e => setFilters({ ...filters, status: e.target.value as Project['status'] | '' })}
               className={styles.select}
             >
-              <option value="">전체</option>
+              <option value="">전체 상태</option>
               <option value="active">활성</option>
               <option value="inactive">비활성</option>
               <option value="pending">대기중</option>
             </select>
+          </div>
+          <div>
+            <label htmlFor="teamMembersFilter" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+              팀 구성원 수
+            </label>
+            <select
+              id="teamMembersFilter"
+              value={filters.teamMembersRange}
+              onChange={e => setFilters({ ...filters, teamMembersRange: e.target.value })}
+              className={styles.select}
+            >
+              <option value="">전체 규모</option>
+              <option value="1-5">1-5명</option>
+              <option value="6-10">6-10명</option>
+              <option value="11-20">11-20명</option>
+              <option value="21+">21명 이상</option>
+            </select>
+          </div>
+          <div className="md:col-span-3 flex justify-end mt-2">
+            <button
+              onClick={() => setFilters(initialFilters)}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" />
+              필터 초기화
+            </button>
           </div>
         </div>
       </div>
@@ -135,7 +186,7 @@ export default function ProjectManagement() {
                   {getStatusBadge(project.status)}
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                   <div>
                     <p className="text-gray-500 dark:text-gray-400">사용 횟수</p>
                     <p className="text-gray-900 dark:text-gray-100 flex items-center">
@@ -209,7 +260,8 @@ export default function ProjectManagement() {
             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             disabled={currentPage === 1}
             className="px-3 py-1 border dark:border-gray-700 rounded-lg disabled:opacity-50
-                     text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+                     text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800
+                     min-w-[2.5rem] min-h-[2.5rem] flex items-center justify-center"
           >
             이전
           </button>
@@ -218,6 +270,7 @@ export default function ProjectManagement() {
               key={page}
               onClick={() => setCurrentPage(page)}
               className={`px-3 py-1 border dark:border-gray-700 rounded-lg transition-colors
+                         min-w-[2.5rem] min-h-[2.5rem] flex items-center justify-center
                 ${currentPage === page
                   ? 'bg-blue-500 dark:bg-blue-600 text-white border-blue-500 dark:border-blue-600'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -230,7 +283,8 @@ export default function ProjectManagement() {
             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
             className="px-3 py-1 border dark:border-gray-700 rounded-lg disabled:opacity-50
-                     text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+                     text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800
+                     min-w-[2.5rem] min-h-[2.5rem] flex items-center justify-center"
           >
             다음
           </button>
@@ -238,4 +292,4 @@ export default function ProjectManagement() {
       )}
     </PageLayout>
   );
-} 
+}

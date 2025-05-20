@@ -1,5 +1,5 @@
-// import React, { useState } from 'react';
-import { ChartPie, Calendar, Users, GitBranch, Clock, MessageSquare, CheckCircle2, GitPullRequest } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChartPie, Calendar, Users, GitBranch, Clock, MessageSquare, CheckCircle2, GitPullRequest, ChevronUp, ChevronDown } from 'lucide-react';
 import { PageLayout } from './ui/PageLayout';
 import { styles } from '../styles/commonStyles';
 import {
@@ -11,9 +11,9 @@ import {
   Tooltip, Legend
 } from 'recharts';
 
-// Mock data
+// Mock data (assuming it's the same as provided)
 const dailyUsage = Array.from({ length: 7 }, (_, i) => ({
-  date: new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000).toLocaleDateString(),
+  date: new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000).toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' }),
   reviews: Math.floor(Math.random() * 50) + 10,
   projects: Math.floor(Math.random() * 10) + 1,
   comments: Math.floor(Math.random() * 200) + 50,
@@ -46,7 +46,7 @@ const monthlyTrend = Array.from({ length: 6 }, (_, i) => {
 
 const hourlyDistribution = Array.from({ length: 24 }, (_, i) => ({
   hour: `${i}시`,
-  reviews: Math.floor(Math.random() * 30) + (i >= 9 && i <= 18 ? 20 : 5), // 업무 시간대 가중치
+  reviews: Math.floor(Math.random() * 30) + (i >= 9 && i <= 18 ? 20 : 5),
 }));
 
 const languageStats = [
@@ -94,11 +94,82 @@ const reviewSizeDistribution = [
 ];
 
 export default function Statistics() {
-  // const [dateRange, setDateRange] = useState('week'); // week, month, year
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    summaryCards: true, // As per instruction, this might not be collapsible, but state is included for consistency
+    reviewMetrics: true,
+    hourlyDistribution: true,
+    languageAndSizeDistribution: true,
+    topReviewers: true,
+    languageTrends: true,
+    dailyUsage: true,
+    projectStatusAndTopProjects: true,
+    monthlyTrend: true,
+  });
+
+  const toggleSection = (section: string) => {
+    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
 
   const totalReviews = dailyUsage.reduce((sum, day) => sum + day.reviews, 0);
   const totalProjects = projectStats.reduce((sum, status) => sum + status.value, 0);
-  const activeUsers = Math.floor(Math.random() * 50) + 30;
+  const activeUsers = reviewerStats.length; // Example: Number of listed reviewers
+
+  const RADIAN = Math.PI / 180;
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+    if (!percent || percent < 0.04) return null; 
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.6; // Adjusted for better positioning
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text x={x} y={y} fill="white" fontSize="10px" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+
+  const pieTooltipFormatter = (value: number, name: string, entry: any) => {
+    const total = entry.payload?.totalForPercentCalc;
+    if (total) {
+      const percentage = ((value / total) * 100).toFixed(1);
+      return [`${value} (${percentage}%)`, name];
+    }
+    return [value, name];
+  };
+  
+  const legendFormatter = (value: string, entry: any) => {
+    const { payload, color } = entry;
+    if (payload && typeof payload.value !== 'undefined' && payload.name) {
+        const itemValue = payload.value;
+        const itemName = payload.name;
+        const totalForPercent = payload.totalForPercentCalc;
+        if (typeof totalForPercent !== 'undefined' && totalForPercent > 0) { // Check if totalForPercent is valid
+            const percentage = ((itemValue / totalForPercent) * 100).toFixed(1);
+            return <span style={{ color, fontSize: '12px' }}>{`${itemName}: ${itemValue} (${percentage}%)`}</span>;
+        }
+        return <span style={{ color, fontSize: '12px' }}>{`${itemName}: ${itemValue}`}</span>;
+    }
+    return <span style={{ color, fontSize: '12px' }}>{value}</span>;
+  };
+
+  const languageStatsTotal = languageStats.reduce((sum, entry) => sum + entry.value, 0);
+  const languageStatsWithTotal = languageStats.map(entry => ({ ...entry, totalForPercentCalc: languageStatsTotal }));
+
+  const reviewSizeDistributionTotal = reviewSizeDistribution.reduce((sum, entry) => sum + entry.count, 0);
+  const reviewSizeDistributionWithTotal = reviewSizeDistribution.map(entry => ({ ...entry, value: entry.count, name: entry.size, totalForPercentCalc: reviewSizeDistributionTotal }));
+  
+  const projectStatsTotal = projectStats.reduce((sum, entry) => sum + entry.value, 0);
+  const projectStatsWithTotal = projectStats.map(entry => ({ ...entry, totalForPercentCalc: projectStatsTotal }));
+
+  const SectionHeader: React.FC<{ title: string; sectionKey: string; }> = ({ title, sectionKey }) => (
+    <button
+      onClick={() => toggleSection(sectionKey)}
+      className="flex justify-between items-center w-full text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4"
+    >
+      {title}
+      {openSections[sectionKey] ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+    </button>
+  );
 
   return (
     <PageLayout
@@ -106,258 +177,297 @@ export default function Statistics() {
       title="통계"
       description="코드 리뷰 시스템의 사용 현황과 통계를 확인합니다."
     >
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className={styles.card}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">총 리뷰 수</p>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{totalReviews}</h3>
-            </div>
-            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <GitBranch className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-        </div>
-        <div className={styles.card}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">활성 프로젝트</p>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{totalProjects}</h3>
-            </div>
-            <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <Calendar className="w-6 h-6 text-green-600 dark:text-green-400" />
-            </div>
-          </div>
-        </div>
-        <div className={styles.card}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">활성 사용자</p>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{activeUsers}</h3>
-            </div>
-            <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-              <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Review Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {reviewMetrics.map(({ name, value, icon: Icon }) => (
-          <div key={name} className={styles.card}>
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <Icon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{name}</p>
-                <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{value}</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Hourly Distribution */}
+      {/* Summary Cards Section (Not collapsible as per instruction, but structure is similar) */}
       <div className={`${styles.card} mb-6`}>
-        <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">시간대별 리뷰 분포</h3>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={hourlyDistribution}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="hour" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="reviews" fill="#3b82f6" name="리뷰 수" />
-            </BarChart>
-          </ResponsiveContainer>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">요약</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className={`${styles.card} bg-white dark:bg-gray-800 shadow-sm`}>
+                <div className="flex items-center justify-between">
+                    <div>
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">총 리뷰 수</p>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{totalReviews}</h3>
+                    </div>
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <GitBranch className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                </div>
+            </div>
+            <div className={`${styles.card} bg-white dark:bg-gray-800 shadow-sm`}>
+                <div className="flex items-center justify-between">
+                    <div>
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">활성 프로젝트</p>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{projectStatsWithTotal.find(p=>p.name === "활성")?.value || 0}</h3>
+                    </div>
+                    <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <Calendar className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    </div>
+                </div>
+            </div>
+            <div className={`${styles.card} bg-white dark:bg-gray-800 shadow-sm`}>
+                <div className="flex items-center justify-between">
+                    <div>
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">활성 사용자</p>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{activeUsers}</h3>
+                    </div>
+                    <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                    </div>
+                </div>
+            </div>
         </div>
       </div>
-
-      {/* Language Stats and Review Size Distribution */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div className={styles.card}>
-          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">언어별 분포</h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={languageStats}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {languageStats.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className={styles.card}>
-          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">리뷰 크기 분포</h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={reviewSizeDistribution}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="count"
-                >
-                  {reviewSizeDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* Top Reviewers */}
+      
+      {/* Review Metrics Section */}
       <div className={`${styles.card} mb-6`}>
-        <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">리뷰어 순위</h3>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={reviewerStats} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" />
-              <YAxis dataKey="name" type="category" width={80} />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="reviews" name="리뷰 수" fill="#3b82f6" />
-              <Bar dataKey="comments" name="코멘트 수" fill="#22c55e" />
-              <Bar dataKey="approvals" name="승인 수" fill="#eab308" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <SectionHeader title="리뷰 주요 지표" sectionKey="reviewMetrics" />
+        {openSections.reviewMetrics && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {reviewMetrics.map(({ name, value, icon: Icon }) => (
+              <div key={name} className={`${styles.card} bg-white dark:bg-gray-800 shadow-sm`}>
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <Icon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{name}</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{value}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Language Trends */}
-      <div className={styles.card}>
-        <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">언어별 리뷰 추이</h3>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={monthlyLanguageTrend}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              {Object.entries(monthlyLanguageTrend[0])
-                .filter(([key]) => key !== 'month')
-                .map(([key, _], index) => (
-                  <Line
-                    key={key}
-                    type="monotone"
-                    dataKey={key}
-                    stroke={languageStats[index]?.color}
-                    name={key}
-                  />
-                ))}
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Charts */}
-      <div className="space-y-6">
-        {/* Daily Usage Chart */}
-        <div className={styles.card}>
-          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">일일 사용 현황</h3>
+      {/* Hourly Distribution Section */}
+      <div className={`${styles.card} mb-6`}>
+        <SectionHeader title="시간대별 리뷰 분포" sectionKey="hourlyDistribution" />
+        {openSections.hourlyDistribution && (
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={dailyUsage}>
+              <BarChart data={hourlyDistribution} margin={{ top: 5, right: 20, left: -20, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
+                <XAxis dataKey="hour" name="시간" tick={{fontSize: 12}} />
+                <YAxis name="리뷰 수" tick={{fontSize: 12}} />
+                <Tooltip formatter={(value: number) => [value, "리뷰 수"]} labelFormatter={(label: string) => `${label} 리뷰`} />
+                <Legend verticalAlign="bottom" layout="horizontal" wrapperStyle={{fontSize: '12px', paddingTop: '10px'}} formatter={legendFormatter} />
+                <Bar dataKey="reviews" fill="#3b82f6" name="리뷰 수" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {/* Language Stats and Review Size Distribution Section */}
+      <div className={`${styles.card} mb-6`}>
+        <SectionHeader title="언어별 및 리뷰 크기별 분포" sectionKey="languageAndSizeDistribution" />
+        {openSections.languageAndSizeDistribution && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className={`${styles.card} bg-white dark:bg-gray-800 shadow-sm pt-4`}>
+              <h3 className="text-md font-semibold mb-2 text-center text-gray-700 dark:text-gray-300">언어별 분포</h3>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={languageStatsWithTotal}
+                      cx="50%"
+                      cy="45%" // Adjusted for legend
+                      labelLine={false}
+                      label={renderCustomizedLabel}
+                      innerRadius={50} // Adjusted
+                      outerRadius={90} // Adjusted
+                      paddingAngle={2}
+                      dataKey="value"
+                      nameKey="name"
+                    >
+                      {languageStatsWithTotal.map((entry, index) => (
+                        <Cell key={`cell-lang-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={pieTooltipFormatter} />
+                    <Legend verticalAlign="bottom" layout="horizontal" align="center" iconSize={10} wrapperStyle={{fontSize: '10px', marginTop: '10px', lineHeight: '1.2em'}} formatter={legendFormatter}/>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className={`${styles.card} bg-white dark:bg-gray-800 shadow-sm pt-4`}>
+              <h3 className="text-md font-semibold mb-2 text-center text-gray-700 dark:text-gray-300">리뷰 크기 분포</h3>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={reviewSizeDistributionWithTotal}
+                      cx="50%"
+                      cy="45%" // Adjusted for legend
+                      labelLine={false}
+                      label={renderCustomizedLabel}
+                      innerRadius={50} // Adjusted
+                      outerRadius={90} // Adjusted
+                      paddingAngle={2}
+                      dataKey="value"
+                      nameKey="name"
+                    >
+                      {reviewSizeDistributionWithTotal.map((entry, index) => (
+                        <Cell key={`cell-size-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={pieTooltipFormatter} />
+                    <Legend verticalAlign="bottom" layout="horizontal" align="center" iconSize={10} wrapperStyle={{fontSize: '10px', marginTop: '10px', lineHeight: '1.2em'}} formatter={legendFormatter}/>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Top Reviewers Section */}
+      <div className={`${styles.card} mb-6`}>
+        <SectionHeader title="리뷰어 순위" sectionKey="topReviewers" />
+        {openSections.topReviewers && (
+          <div className="h-96"> {/* Increased height for better visibility of vertical bar chart labels */}
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={reviewerStats} layout="vertical" margin={{ top: 5, right: 20, left: 20, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" name="수치" tick={{fontSize: 12}} />
+                <YAxis dataKey="name" type="category" width={70} name="리뷰어" tick={{fontSize: 12}}/>
                 <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="reviews" stroke="#3b82f6" name="리뷰 수" />
-                <Line type="monotone" dataKey="projects" stroke="#22c55e" name="프로젝트 수" />
+                <Legend verticalAlign="bottom" layout="horizontal" wrapperStyle={{fontSize: '12px', paddingTop: '10px'}} formatter={legendFormatter} />
+                <Bar dataKey="reviews" name="리뷰 수" fill="#3b82f6" />
+                <Bar dataKey="comments" name="코멘트 수" fill="#22c55e" />
+                <Bar dataKey="approvals" name="승인 수" fill="#eab308" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {/* Language Trends Section */}
+      <div className={`${styles.card} mb-6`}>
+        <SectionHeader title="언어별 리뷰 추이" sectionKey="languageTrends" />
+        {openSections.languageTrends && (
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={monthlyLanguageTrend} margin={{ top: 5, right: 20, left: -20, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" name="월" tick={{fontSize: 12}} />
+                <YAxis name="리뷰 수" tick={{fontSize: 12}}/>
+                <Tooltip />
+                <Legend verticalAlign="bottom" layout="horizontal" wrapperStyle={{fontSize: '12px', paddingTop: '10px'}} formatter={legendFormatter} />
+                {Object.entries(monthlyLanguageTrend[0] || {}) // Add null check for monthlyLanguageTrend[0]
+                  .filter(([key]) => key !== 'month')
+                  .map(([key, _], index) => (
+                    <Line
+                      key={key}
+                      type="monotone"
+                      dataKey={key}
+                      stroke={languageStats[index]?.color || '#000000'}
+                      name={key}
+                      dot={{r:3}}
+                      activeDot={{r:5}}
+                    />
+                  ))}
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </div>
-
-        {/* Project Status Distribution */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className={styles.card}>
-            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">프로젝트 상태 분포</h3>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={projectStats}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {projectStats.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Top Projects */}
-          <div className={styles.card}>
-            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">상위 프로젝트</h3>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topProjects}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="reviews" fill="#3b82f6" name="리뷰 수" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-
-        {/* Monthly Trend */}
-        <div className={styles.card}>
-          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">월간 추이</h3>
+        )}
+      </div>
+      
+      {/* Daily Usage Chart Section */}
+      <div className={`${styles.card} mb-6`}>
+        <SectionHeader title="일일 사용 현황" sectionKey="dailyUsage" />
+        {openSections.dailyUsage && (
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyTrend}>
+              <LineChart data={dailyUsage} margin={{ top: 5, right: 20, left: -20, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis yAxisId="left" />
-                <YAxis yAxisId="right" orientation="right" />
+                <XAxis dataKey="date" name="날짜" tick={{fontSize: 12}} />
+                <YAxis name="수치" tick={{fontSize: 12}}/>
                 <Tooltip />
-                <Legend />
-                <Line yAxisId="left" type="monotone" dataKey="reviews" stroke="#3b82f6" name="리뷰 수" />
-                <Line yAxisId="right" type="monotone" dataKey="users" stroke="#8b5cf6" name="사용자 수" />
+                <Legend verticalAlign="bottom" layout="horizontal" wrapperStyle={{fontSize: '12px', paddingTop: '10px'}} formatter={legendFormatter} />
+                <Line type="monotone" dataKey="reviews" stroke="#3b82f6" name="리뷰 수" dot={{r:3}} activeDot={{r:5}}/>
+                <Line type="monotone" dataKey="projects" stroke="#22c55e" name="프로젝트 수" dot={{r:3}} activeDot={{r:5}}/>
+                <Line type="monotone" dataKey="comments" stroke="#8b5cf6" name="코멘트 수" dot={{r:3}} activeDot={{r:5}}/>
+                <Line type="monotone" dataKey="approvals" stroke="#eab308" name="승인 수" dot={{r:3}} activeDot={{r:5}}/>
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        )}
+      </div>
+
+      {/* Project Status Distribution & Top Projects Section */}
+      <div className={`${styles.card} mb-6`}>
+        <SectionHeader title="프로젝트 상태 및 상위 프로젝트" sectionKey="projectStatusAndTopProjects" />
+        {openSections.projectStatusAndTopProjects && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className={`${styles.card} bg-white dark:bg-gray-800 shadow-sm pt-4`}>
+              <h3 className="text-md font-semibold mb-2 text-center text-gray-700 dark:text-gray-300">프로젝트 상태 분포</h3>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={projectStatsWithTotal}
+                      cx="50%"
+                      cy="45%" // Adjusted for legend
+                      labelLine={false}
+                      label={renderCustomizedLabel}
+                      innerRadius={50}
+                      outerRadius={90}
+                      paddingAngle={2}
+                      dataKey="value"
+                      nameKey="name"
+                    >
+                      {projectStatsWithTotal.map((entry, index) => (
+                        <Cell key={`cell-proj-stat-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={pieTooltipFormatter} />
+                    <Legend verticalAlign="bottom" layout="horizontal" align="center" iconSize={10} wrapperStyle={{fontSize: '10px', marginTop: '10px', lineHeight: '1.2em'}} formatter={legendFormatter}/>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className={`${styles.card} bg-white dark:bg-gray-800 shadow-sm pt-4`}>
+              <h3 className="text-md font-semibold mb-2 text-center text-gray-700 dark:text-gray-300">상위 프로젝트 (리뷰 수)</h3>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={topProjects} margin={{ top: 5, right: 5, left: 5, bottom: 55 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" angle={-35} textAnchor="end" interval={0} tick={{fontSize: 11}} name="프로젝트" />
+                    <YAxis name="리뷰 수" tick={{fontSize: 12}}/>
+                    <Tooltip formatter={(value: number) => [value, "리뷰 수"]} />
+                    <Legend verticalAlign="bottom" layout="horizontal" wrapperStyle={{fontSize: '12px', paddingTop: '40px'}} formatter={legendFormatter} />
+                    <Bar dataKey="reviews" fill="#3b82f6" name="리뷰 수" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Monthly Trend Section */}
+      <div className={`${styles.card} mb-6`}>
+        <SectionHeader title="월간 추이 (리뷰 및 사용자)" sectionKey="monthlyTrend" />
+        {openSections.monthlyTrend && (
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={monthlyTrend} margin={{ top: 5, right: 20, left: -20, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" name="월" tick={{fontSize: 12}}/>
+                <YAxis yAxisId="left" name="리뷰 수" tick={{fontSize: 12}}/>
+                <YAxis yAxisId="right" orientation="right" name="사용자 수" tick={{fontSize: 12}}/>
+                <Tooltip />
+                <Legend verticalAlign="bottom" layout="horizontal" wrapperStyle={{fontSize: '12px', paddingTop: '10px'}} formatter={legendFormatter} />
+                <Line yAxisId="left" type="monotone" dataKey="reviews" stroke="#3b82f6" name="리뷰 수" dot={{r:3}} activeDot={{r:5}}/>
+                <Line yAxisId="right" type="monotone" dataKey="users" stroke="#8b5cf6" name="사용자 수" dot={{r:3}} activeDot={{r:5}}/>
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </div>
     </PageLayout>
   );
-} 
+}
