@@ -1,5 +1,5 @@
 import { State, Action } from '../types';
-import { Dispatch } from 'react';
+import { Dispatch, useState } from 'react';
 import { FileText, Send } from 'lucide-react';
 import { PageLayout } from './ui/PageLayout';
 import { styles } from '../styles/commonStyles';
@@ -11,19 +11,24 @@ interface RequestFormProps {
 
 // 요청서 작성 폼 컴포넌트
 export const RequestForm = ({ state, dispatch }: RequestFormProps) => {
+  const [submissionStatus, setSubmissionStatus] = useState<null | 'success' | 'error'>(null);
+  const [submissionMessage, setSubmissionMessage] = useState<string>('');
+
   const handleRequestSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert('요청서가 제출되었습니다. 관리자 검토 후 승인될 예정입니다.');
-    dispatch({ 
-      type: 'UPDATE_REQUEST_FORM', 
+    // Simulate API call
+    setSubmissionStatus('success');
+    setSubmissionMessage('요청서가 성공적으로 제출되었습니다. 관리자 검토 후 승인될 예정입니다.');
+    dispatch({
+      type: 'UPDATE_REQUEST_FORM',
       payload: {
         projectName: '',
         repositoryUrl: '',
         description: '',
         purpose: '',
         expectedDuration: '3',
-        teamSize: ''
-      }
+        teamSize: '',
+      },
     });
   };
 
@@ -36,16 +41,17 @@ export const RequestForm = ({ state, dispatch }: RequestFormProps) => {
       <div className={styles.card}>
         <form onSubmit={handleRequestSubmit} className="space-y-6">
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-2">
+            <label htmlFor="projectName" className="text-sm font-medium text-gray-700 block mb-2">
               프로젝트 이름
             </label>
             <input
+              id="projectName"
               type="text"
               required
               value={state.requestForm.projectName}
-              onChange={(e) => dispatch({ 
-                type: 'UPDATE_REQUEST_FORM', 
-                payload: { projectName: e.target.value }
+              onChange={(e) => dispatch({
+                type: 'UPDATE_REQUEST_FORM',
+                payload: { projectName: e.target.value },
               })}
               className={styles.input}
               placeholder="프로젝트 이름을 입력하세요"
@@ -53,16 +59,18 @@ export const RequestForm = ({ state, dispatch }: RequestFormProps) => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-2">
+            <label htmlFor="repositoryUrl" className="text-sm font-medium text-gray-700 block mb-2">
               Repository URL
             </label>
             <input
+              id="repositoryUrl"
               type="url"
               required
+              pattern="https?://.+"
               value={state.requestForm.repositoryUrl}
-              onChange={(e) => dispatch({ 
-                type: 'UPDATE_REQUEST_FORM', 
-                payload: { repositoryUrl: e.target.value }
+              onChange={(e) => dispatch({
+                type: 'UPDATE_REQUEST_FORM',
+                payload: { repositoryUrl: e.target.value },
               })}
               className={styles.input}
               placeholder="https://bitbucket.org/..."
@@ -70,15 +78,16 @@ export const RequestForm = ({ state, dispatch }: RequestFormProps) => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-2">
+            <label htmlFor="description" className="text-sm font-medium text-gray-700 block mb-2">
               프로젝트 설명
             </label>
             <textarea
+              id="description"
               required
               value={state.requestForm.description}
-              onChange={(e) => dispatch({ 
-                type: 'UPDATE_REQUEST_FORM', 
-                payload: { description: e.target.value }
+              onChange={(e) => dispatch({
+                type: 'UPDATE_REQUEST_FORM',
+                payload: { description: e.target.value },
               })}
               className={`${styles.input} h-24 resize-none`}
               placeholder="프로젝트에 대한 간단한 설명을 입력하세요"
@@ -86,31 +95,33 @@ export const RequestForm = ({ state, dispatch }: RequestFormProps) => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-2">
+            <label htmlFor="purpose" className="text-sm font-medium text-gray-700 block mb-2">
               사용 목적
             </label>
             <textarea
+              id="purpose"
               required
               value={state.requestForm.purpose}
-              onChange={(e) => dispatch({ 
-                type: 'UPDATE_REQUEST_FORM', 
-                payload: { purpose: e.target.value }
+              onChange={(e) => dispatch({
+                type: 'UPDATE_REQUEST_FORM',
+                payload: { purpose: e.target.value },
               })}
               className={`${styles.input} h-24 resize-none`}
               placeholder="코드 리뷰 시스템을 어떤 목적으로 사용하실 예정인지 설명해주세요"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-2">
+              <label htmlFor="expectedDuration" className="text-sm font-medium text-gray-700 block mb-2">
                 예상 사용 기간 (개월)
               </label>
               <select
+                id="expectedDuration"
                 value={state.requestForm.expectedDuration}
-                onChange={(e) => dispatch({ 
-                  type: 'UPDATE_REQUEST_FORM', 
-                  payload: { expectedDuration: e.target.value }
+                onChange={(e) => dispatch({
+                  type: 'UPDATE_REQUEST_FORM',
+                  payload: { expectedDuration: e.target.value },
                 })}
                 className={styles.select}
               >
@@ -121,23 +132,36 @@ export const RequestForm = ({ state, dispatch }: RequestFormProps) => {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-2">
+              <label htmlFor="teamSize" className="text-sm font-medium text-gray-700 block mb-2">
                 팀 규모 (명)
               </label>
               <input
+                id="teamSize"
                 type="number"
                 required
                 min="1"
                 value={state.requestForm.teamSize}
-                onChange={(e) => dispatch({ 
-                  type: 'UPDATE_REQUEST_FORM', 
-                  payload: { teamSize: e.target.value }
+                onChange={(e) => dispatch({
+                  type: 'UPDATE_REQUEST_FORM',
+                  payload: { teamSize: e.target.value },
                 })}
                 className={styles.input}
                 placeholder="팀 인원 수"
               />
             </div>
           </div>
+
+          {submissionStatus === 'success' && (
+            <div className="p-4 mb-4 text-sm text-green-700 bg-green-100 rounded-lg" role="alert">
+              {submissionMessage}
+            </div>
+          )}
+
+          {submissionStatus === 'error' && (
+            <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+              {submissionMessage} {/* You might want a different message for errors */}
+            </div>
+          )}
 
           <button
             type="submit"
@@ -151,4 +175,4 @@ export const RequestForm = ({ state, dispatch }: RequestFormProps) => {
       </div>
     </PageLayout>
   );
-}; 
+};
